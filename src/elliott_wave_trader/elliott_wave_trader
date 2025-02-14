@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+from elliott_wave_trader import ElliottWaveTrader
+
+def main():
+    parser = ElliottWaveTrader()
+    parser.execute()
+
+
+if __name__ == '__main__':
+    main()
