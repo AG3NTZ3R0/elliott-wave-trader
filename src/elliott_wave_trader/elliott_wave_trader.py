@@ -22,6 +22,10 @@ class ElliottWaveTrader:
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='A CLI tool to perform data transformations on Elliott Wave Trade Wave Setups.')
         self.parser.add_argument('--symbol', type=str, help='Ticker symbol')
+        self.parser.add_argument('--sort', nargs='+', help='Columns to sort by')
+        self.parser.add_argument('--ascending', nargs='+', help='True/False for each sort column', 
+            type=lambda x: x.lower() == 'true'
+        )
         
         self.args = self.parser.parse_args()
 
@@ -93,7 +97,15 @@ class ElliottWaveTrader:
         df[self.numerical_columns] = df[self.numerical_columns].apply(pd.to_numeric)
         df['% Progress'] = ((df['Latest'] - df['Support']) / (df['Target'] - df['Support']) * 100).round(2)
         self.numerical_columns.append('% Progress')
+        # TODO: Add % Potential. The formula is different depending upon whether the setup is short or long type.
+        # self.numerical_columns.append('% Potential')
 
+        if self.args.sort is not None:
+            if self.args.ascending is not None:
+                df = df.sort_values(self.args.sort, ascending=self.args.ascending)
+            else:
+                df = df.sort_values(self.args.sort)
+        
         df[self.date_columns] = df[self.date_columns].apply(pd.to_datetime, format='%d-%b-%y')
         df[self.date_columns] = df[self.date_columns].apply(lambda x: x.dt.strftime('%d-%m-%y'))
         df[self.numerical_columns] = df[self.numerical_columns].apply(lambda x: [f'{float(val):.2f}' for val in x])
@@ -101,6 +113,7 @@ class ElliottWaveTrader:
         df.insert(2, 'Time', df.pop('Time'))
         df.insert(3, 'Rank', df.pop('Rank'))
         df.insert(10, '% Progress', df.pop('% Progress'))
+        # Insert % Potential
 
         df.pop('Industry')
         df.pop('Last Video')
